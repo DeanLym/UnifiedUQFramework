@@ -14,7 +14,7 @@ class UQBase:
         self.d_posterior_ = np.zeros((nd, nr))
         self.cd_ = sparse.eye(nd)
         self.cm_ = sparse.eye(nm)
-        self.sim_fun = None
+        self.sim_master_ = None
         self.mpi_run = False
 
     def solve(self):

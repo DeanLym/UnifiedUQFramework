@@ -1,8 +1,6 @@
 from CUQBase import UQBase
 import numpy as np
 from scipy import sparse
-from mpi4py import MPI
-
 
 class UQEn(UQBase):
     def __init__(self, nm=1, nd=1, nr=1):
@@ -27,22 +25,18 @@ class UQEn(UQBase):
     def mpirun(self):
         # parallel run
         print("UQEn mpirun is called.")
-        self.sim_fun()
+        m = 1
+        self.sim_master_.sim(m)
         return True
 
-    def run(self):
-        # serial run
-        print("UQEn run is called.")
-        self.sim_fun()
-        return True
+    # def run(self):
+    #     # serial run
+    #     print("UQEn run is called.")
+    #     self.sim_master_.sim()
+    #     return True
 
     def solve(self):
-        print("UQEn solve is called.")
-        if self.mpi_run:
-            self.mpirun()
-        else:
-            self.run()
-
+        self.sim_master_.run_list_sim(self.m_prior_)
         # serial run
         return True
 
