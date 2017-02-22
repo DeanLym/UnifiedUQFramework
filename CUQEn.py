@@ -2,6 +2,7 @@ from CUQBase import UQBase
 import numpy as np
 from scipy import sparse
 
+
 class UQEn(UQBase):
     def __init__(self, nm=1, nd=1, nr=1):
         super(UQEn, self).__init__(nm, nd, nr)
@@ -36,7 +37,8 @@ class UQEn(UQBase):
     #     return True
 
     def solve(self):
-        self.sim_master_.run_list_sim(self.m_prior_)
+        d_list = self.sim_master_.run_list_sim(self.m_prior_)
+        print(d_list)
         # serial run
         return True
 

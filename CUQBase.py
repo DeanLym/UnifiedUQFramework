@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import sparse
+from multimethod import multimethod
 
 
 class UQBase:
@@ -17,8 +18,36 @@ class UQBase:
         self.sim_master_ = None
         self.mpi_run = False
 
+    # @multimethod(np.array)
+    # def input_m_prior(self, m_prior):
+    #     self.m_prior_ = m_prior
+    #     if self.m_prior_.shape[0] != self.nm_ or self.m_prior_.shape[1] != self.nr_:
+    #         print("[ERROR] Dimension mismatch for m_prior.")
+    #         exit(1)
+    #
+    # @multimethod(None, str)
+    def input_m_prior(self, m_prior_file):
+        self.m_prior_ = np.loadtxt(m_prior_file)
+        if self.m_prior_.shape[0] != self.nm_ or self.m_prior_.shape[1] != self.nr_:
+            print("[ERROR] Dimension mismatch for m_prior.")
+            exit(1)
+
+    # @multimethod(np.array)
+    def input_d_obs(self, d_obs):
+        self.d_obs_ = d_obs
+        if self.d_obs_.shape[0] != self.nd_ or self.d_obs_.shape[1] != 1:
+            print("[ERROR] Dimension mismatch for d_obs.")
+            exit(1)
+    #
+    # @multimethod(str)
+    # def input_d_obs(self, d_obs_file):
+    #     self.d_obs_ = np.loadtxt(d_obs_file)
+    #     if self.d_obs_.shape[0] != self.nd_ or self.d_obs_.shape[1] != 1:
+    #         print("[ERROR] Dimension mismatch for d_obs.")
+    #         exit(1)
+
     def solve(self):
-        print("UQBase solve is called.")
+        print("UQBase virtual solve is called.")
 
     # def solve(self):
     #     self.m_posterior_ = np.zeros((self.nm_, self.nr_))

@@ -4,6 +4,8 @@ from enum import IntEnum
 
 
 class UQAlg(IntEnum):
+    # Undefined
+    NONE = 0
     # Sampling algorithms
     RS = 10
     MCMC = 11
