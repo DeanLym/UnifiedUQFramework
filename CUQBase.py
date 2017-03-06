@@ -1,53 +1,101 @@
-import numpy as np
+import numpy as npy
 from scipy import sparse
 from multimethod import multimethod
 
 
-class UQBase:
+class UQBase(object):
     def __init__(self, nm=1, nd=1, nr=1):
-        self.nm_ = nm
-        self.nd_ = nd
-        self.nr_ = nr
-        self.d_obs_ = np.zeros((nd, 1))
-        self.m_prior_ = np.zeros((nm, nr))
-        self.d_prior_ = np.zeros((nd, nr))
-        self.m_posterior_ = np.zeros((nm, nr))
-        self.d_posterior_ = np.zeros((nd, nr))
-        self.cd_ = sparse.eye(nd)
-        self.cm_ = sparse.eye(nm)
-        self.sim_master_ = None
-        self.mpi_run = False
+        self.nm_ = nm  # number of model parameters
+        self.nd_ = nd  # number of data
+        self.nr_ = nr  # number of realizations
+        self.d_obs_ = npy.zeros((nd, 1))  # observed data
+        self.d_uc_ = npy.zeros((nd, nr))  # observed data
+        self.m_prior_ = npy.zeros((nm, nr))  # prior models
+        self.d_prior_ = npy.zeros((nd, nr))  # prior predictions
+        self.m_posterior_ = npy.zeros((nm, nr))  # posterior models
+        self.d_posterior_ = npy.zeros((nd, nr))  # posterior predictions
+        self.m_k_ = npy.zeros((nm, 1))  # models at k-th iteration
+        self.d_k_ = npy.zeros((nd, 1))  # prediction at k-th iteration
+        self.cd_ = npy.zeros((nd, nd))  # covariance of data error
+        self.cm_ = npy.zeros((nm, nm))  # covariance of model parameters
+        self.sim_master_ = None  # a class for performing simulation
+        self.mpi_run = False  # whether or not use mpi_run
 
-    # @multimethod(np.array)
-    # def input_m_prior(self, m_prior):
-    #     self.m_prior_ = m_prior
-    #     if self.m_prior_.shape[0] != self.nm_ or self.m_prior_.shape[1] != self.nr_:
-    #         print("[ERROR] Dimension mismatch for m_prior.")
-    #         exit(1)
-    #
-    # @multimethod(None, str)
+    @multimethod(object, str)
     def input_m_prior(self, m_prior_file):
-        self.m_prior_ = np.loadtxt(m_prior_file)
+        self.m_prior_ = npy.loadtxt(m_prior_file)
         if self.m_prior_.shape[0] != self.nm_ or self.m_prior_.shape[1] != self.nr_:
             print("[ERROR] Dimension mismatch for m_prior.")
             exit(1)
 
-    # @multimethod(np.array)
-    def input_d_obs(self, d_obs):
-        self.d_obs_ = d_obs
+    @multimethod(object, npy.ndarray)
+    def input_m_prior(self, m_prior):
+        self.m_prior_ = m_prior
+        if self.m_prior_.shape[0] != self.nm_ or self.m_prior_.shape[1] != self.nr_:
+            print("[ERROR] Dimension mismatch for m_prior.")
+            exit(1)
+
+    @multimethod(object, str)
+    def input_d_obs(self, d_obs_file):
+        self.d_obs_ = npy.loadtxt(d_obs_file)
         if self.d_obs_.shape[0] != self.nd_ or self.d_obs_.shape[1] != 1:
             print("[ERROR] Dimension mismatch for d_obs.")
             exit(1)
-    #
-    # @multimethod(str)
-    # def input_d_obs(self, d_obs_file):
-    #     self.d_obs_ = np.loadtxt(d_obs_file)
-    #     if self.d_obs_.shape[0] != self.nd_ or self.d_obs_.shape[1] != 1:
-    #         print("[ERROR] Dimension mismatch for d_obs.")
-    #         exit(1)
+
+    @multimethod(object, npy.ndarray)
+    def input_d_obs(self, d_obs):
+        self.d_obs_ = d_obs
+        if self.d_obs_.shape[0] != self.nd_:
+            print("[ERROR] Dimension mismatch for d_obs.")
+            exit(1)
+
+    @multimethod(object, str)
+    def input_d_uc(self, d_uc_file):
+        self.d_uc_ = npy.loadtxt(d_uc_file)
+        if self.d_uc_.shape[0] != self.nd_ or self.d_uc_.shape[1] != self.nr_:
+            print("[ERROR] Dimension mismatch for d_uc.")
+            exit(1)
+
+    @multimethod(object, npy.ndarray)
+    def input_d_uc(self, d_uc):
+        self.d_uc_ = d_uc
+        if self.d_uc_.shape[0] != self.nd_ or self.d_uc_.shape[1] != self.nr_:
+            print("[ERROR] Dimension mismatch for d_uc.")
+            exit(1)
+
+    @multimethod(object, str)
+    def input_cd(self, cd_file):
+        self.cd_ = npy.loadtxt(cd_file)
+        if self.cd_.shape[0] != self.nd_ or self.cd_.shape[1] != self.nd_:
+            print("[ERROR] Dimension mismatch for C_d.")
+            exit(1)
+
+    @multimethod(object, npy.ndarray)
+    def input_cd(self, cd):
+        self.cd_ = cd
+        if self.cd_.shape[0] != self.nd_ or self.cd_.shape[1] != self.nd_:
+            print("[ERROR] Dimension mismatch for C_d.")
+            exit(1)
+
+    @multimethod(object, npy.ndarray)
+    def input_cm(self, cm):
+        self.cm_ = cm
+        if self.cm_.shape[0] != self.nm_ or self.cm_.shape[1] != self.nm_:
+            print("[ERROR] Dimension mismatch for C_m.")
+            exit(1)
+
+    @multimethod(object, str)
+    def input_cm(self, cm_file):
+        self.cm_ = npy.loadtxt(cm_file)
+        if self.cm_.shape[0] != self.nm_ or self.cm_.shape[1] != self.nm_:
+            print("[ERROR] Dimension mismatch for C_m.")
+            exit(1)
 
     def solve(self):
         print("UQBase virtual solve is called.")
+
+    def stop(self):
+        self.sim_master_.stop_slaves()
 
     # def solve(self):
     #     self.m_posterior_ = np.zeros((self.nm_, self.nr_))

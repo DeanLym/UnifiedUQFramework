@@ -9,4 +9,3 @@ class UQDummy:
 
     def solve(self):
         self.sim_master_.slave_run()
-        # print("UQBase solve is called.")

@@ -1,6 +1,6 @@
 from enum import IntEnum
 
-
+UQ_USE_MPI = True
 
 
 class UQAlg(IntEnum):

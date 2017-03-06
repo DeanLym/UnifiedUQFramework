@@ -1,6 +1,5 @@
 from CUQBase import UQBase
 import numpy as np
-from scipy import sparse
 
 
 class UQEn(UQBase):
@@ -9,42 +8,31 @@ class UQEn(UQBase):
         # Nm, Nd defined is UQBase
         # Nr - ensemble size
         self.np_ = 0 # Size of the state vector (0 for smoothers and non-zero for filters)
-        # Cd definded in UQBase
-        self.cyd_ = np.zeros((self.nm_, self.nd_))
+        # Cd defined in UQBase
+        self.cmd_ = np.zeros((self.nm_, self.nd_))
         self.cdd_ = np.zeros((self.nd_, self.nd_))
-        self.duc_ = np.zeros((self.nd_, self.nr_))
+        # self.duc_ = np.zeros((self.nd_, self.nr_))
         self.dn_ = np.zeros((self.nd_, self.nr_))
+
+    def initialize(self):
+        # initialize algorithm (virtual)
+        return True
 
     def forecast(self):
         # forecast step
+        self.d_k_ = self.sim_master_.run_list_sim(self.m_k_)
         return True
 
     def update(self):
-        # update step
+        # update step (virtual)
         return True
-
-    def mpirun(self):
-        # parallel run
-        print("UQEn mpirun is called.")
-        m = 1
-        self.sim_master_.sim(m)
-        return True
-
-    # def run(self):
-    #     # serial run
-    #     print("UQEn run is called.")
-    #     self.sim_master_.sim()
-    #     return True
 
     def solve(self):
-        d_list = self.sim_master_.run_list_sim(self.m_prior_)
-        print(d_list)
-        # serial run
+        # virtual solve
+        # d_list = self.sim_master_.run_list_sim(self.m_prior_)
+        # print(d_list)
         return True
 
-    def sim(self):
-        # The function to overwrite
-        return True
 
 
 

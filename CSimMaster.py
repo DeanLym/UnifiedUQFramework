@@ -1,5 +1,8 @@
+from UQGlobal import *
 import numpy as np
-from mpi4py import MPI
+if UQ_USE_MPI:
+    from mpi4py import MPI
+
 from enum import IntEnum
 
 
@@ -10,35 +13,34 @@ class SIGNAL(IntEnum):
 
 
 class SimMaster:
-    def __init__(self, nm=1, nd=1, mpi_run=False):
+    def __init__(self, nm=1, nd=1):
         # self.num_run_ = 1
         self.nm_ = nm
         self.nd_ = nd
-        self.mpi_run = mpi_run
         self.comm = None
         self.num_procs = 1
         self.rank = 0
-        if self.mpi_run:
+        if UQ_USE_MPI:
             self.comm = MPI.COMM_WORLD
             self.num_procs = self.comm.Get_size()
             self.rank = self.comm.Get_rank()
 
     def run_list_sim(self, m_list):
-        d_list = []
-        if self.mpi_run:
+        num_run = m_list.shape[1]
+        d_list = np.zeros((self.nd_, num_run))
+        if UQ_USE_MPI:
             if self.rank == 0:
                 d_list = self.master_run(m_list)
         else:
-            num_run = m_list.shape[1]
             for i_run in range(0, num_run):
-                d_list[:, i_run] = self.sim(m_list[:, i_run]) 
+                d_list[:, i_run] = self.sim(m_list[:, i_run], i_run)
         return d_list
 
     # def run(self):
     #     if self.rank != 0:
     #         self.slave_run()
 
-    def sim(self, m):
+    def sim(self, m, tag):
         # The black-box simulator d=g(m)
         # Overwrite this function for your problem
         print("SimBase sim is called.")
@@ -58,6 +60,7 @@ class SimMaster:
                     msg = {
                         'signal': SIGNAL.SIM,
                         'data': m_list[:, i_run],
+                        'tag': i_run,
                     }
                 else:
                     msg = {
@@ -76,13 +79,7 @@ class SimMaster:
                 i_data += 1
                 print("d from slave #"+str(k))
                 # print(d)
-            print("-------------------------------Master sending Stop signal...")
-        # Stop the slaves
-        for k in range(1, self.num_procs):
-            msg = {
-                'signal': SIGNAL.WAIT,
-            }
-            self.comm.send(msg, dest=k)
+
         print("-------------------------------Master run..")
         return d_list
 
@@ -97,21 +94,24 @@ class SimMaster:
             print("Slave #" + str(self.rank) + " received signal " + msg.get("signal") + "...")
             if msg.get("signal") == SIGNAL.SIM:
                 m = msg.get("data")
-                d = self.sim(m)
+                tag = msg.get("tag")
+                d = self.sim(m, tag)
                 self.comm.send(d, dest=0)
             if msg.get("signal") == SIGNAL.WAIT:
                 self.comm.send('', dest=0)
             if msg.get("signal") == SIGNAL.STOP:
                 break
         print("Slave #" + str(self.rank) + " breaked from while loop...")
-        # for k in range(0,1):
-        #     print("Slave #" + str(self.rank) + " running...")
-        #     self.sim(1)
 
-    # def run(self, rank):
-    #     for k in range(0,2):
-    #         print("Slave #" + str(rank) + " running...")
-    #         self.sim(1)
+    def stop(self):
+        if UQ_USE_MPI:
+            print("-------------------------------Master sending Stop signal...")
+            # Stop the slaves
+            for k in range(1, self.num_procs):
+                msg = {
+                    'signal': SIGNAL.STOP,
+                }
+                self.comm.send(msg, dest=k)
 
 
 

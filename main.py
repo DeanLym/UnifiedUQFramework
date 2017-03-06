@@ -1,7 +1,10 @@
+import UQGlobal
+# Global option for using MPI or not
+UQGlobal.UQ_USE_MPI = False
+#
 from CSimMaster import SimMaster
 from CUQMain import *
-import numpy as np
-import sys
+
 
 class MySim(SimMaster):
     # def __init__(self):
@@ -18,9 +21,9 @@ if __name__ == "__main__":
     nm = 10
     nd = 5
     nr = 5
-    mpi_run = True
-    my_sim = MySim(nm, nd, mpi_run)
-    main = UQMain(nm, nd, nr, UQAlg.EnS, my_sim, mpi_run)
-    main.solver.input_m_prior('m_prior.txt')
+    my_sim = MySim(nm, nd)
+    main = UQMain(nm, nd, nr, UQAlg.EnS, my_sim)
+    main.solver.input_m_prior('data/m_prior.txt')
     main.solve()
+    print(main.solver.d_posterior_)
     # a = input()
