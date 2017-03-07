@@ -1,4 +1,7 @@
-from CUQEn import UQEn
+try:
+    from .CUQEn import UQEn
+except():
+    from CUQEn import UQEn
 import numpy as npy
 
 
